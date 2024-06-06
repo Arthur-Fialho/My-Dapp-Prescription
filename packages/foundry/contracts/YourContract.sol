@@ -1,84 +1,141 @@
-//SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-// Useful for debugging. Remove when deploying to a live network.
-import "forge-std/console.sol";
-
-// Use openzeppelin to inherit battle-tested implementations (ERC20, ERC721, etc)
-// import "@openzeppelin/contracts/access/Ownable.sol";
-
-/**
- * A smart contract that allows changing a state variable of the contract and tracking the changes
- * It also allows the owner to withdraw the Ether in the contract
- * @author BuidlGuidl
- */
 contract YourContract {
-    // State Variables
-    address public immutable owner;
-    string public greeting = "Building Unstoppable Apps!!!";
-    bool public premium = false;
-    uint256 public totalCounter = 0;
-    mapping(address => uint256) public userGreetingCounter;
+    error OnlyDoctorCanPrescribe();
+    error PrescriptionAlreadyFilled();
+    error expirationTimeNotPassedYet();
 
-    // Events: a way to emit log statements from smart contract that can be listened to by external parties
-    event GreetingChange(
-        address indexed greetingSetter,
-        string newGreeting,
-        bool premium,
-        uint256 value
-    );
+    address doctor;
+    address owner;
+    uint256 prescriptionDate;
+    uint256 prescriptionId;
 
-    // Constructor: Called once on contract deployment
-    // Check packages/foundry/deploy/Deploy.s.sol
-    constructor(address _owner) {
-        owner = _owner;
+    // Mapeamento de endereços de pacientes para receitas
+    mapping(address => Prescription[]) public prescriptions;
+    mapping(uint256 => address) public patientAdrress;
+    uint256[] public prescriptionIdArray;
+
+    // Estrutura para representar uma receita médica
+    struct Prescription {
+        address doctor; // Endereço do médico que prescreveu a receita
+        address patient; // Endereço do paciente para quem a receita foi prescrita
+        string[] medication; // Medicamento prescrito
+        uint256[] quantity; // Quantidade do medicamento
+        bool isFilled; // Flag para indicar se a receita foi preenchida pela farmácia
+        uint256 expirationTime; // Tempo para expiração da receita
+        uint256 prescriptionId;
     }
 
-    // Modifier: used to define a set of rules that must be met before or after a function is executed
-    // Check the withdraw() function
-    modifier isOwner() {
-        // msg.sender: predefined variable that represents address of the account that called the current function
-        require(msg.sender == owner, "Not the Owner");
+    // Evento para registrar quando uma nova receita é prescrita
+    event PrescriptionCreated(
+        address doctor,
+        address patient,
+        string[] medication,
+        uint256[] quantity,
+        uint256 expirationTime,
+        uint256 prescriptionId
+    );
+
+    modifier OnlyDoctor() {
+        if (msg.sender != address(doctor)) {
+            revert OnlyDoctorCanPrescribe();
+        }
         _;
     }
 
-    /**
-     * Function that allows anyone to change the state variable "greeting" of the contract and increase the counters
-     *
-     * @param _newGreeting (string memory) - new greeting to save on the contract
-     */
-    function setGreeting(string memory _newGreeting) public payable {
-        // Print data to the anvil chain console. Remove when deploying to a live network.
+    constructor(address _owner) {
+        owner = _owner;
+        doctor = msg.sender;
+    }
 
-        console.logString("Setting new greeting");
-        console.logString(_newGreeting);
+    // Função para prescrever uma nova receita
+    function prescribeMedication(
+        address _patient,
+        string[] memory _medication,
+        uint256[] memory _quantity,
+        uint256 _expirationTime
+    ) public OnlyDoctor {
+        // Cria uma nova receita
+        Prescription memory newPrescription = Prescription({
+            doctor: msg.sender,
+            patient: _patient,
+            medication: _medication,
+            quantity: _quantity,
+            isFilled: false,
+            expirationTime: block.timestamp + _expirationTime,
+            prescriptionId: prescriptionId
+        });
+        prescriptionDate = block.timestamp;
 
-        greeting = _newGreeting;
-        totalCounter += 1;
-        userGreetingCounter[msg.sender] += 1;
+        // Adiciona a receita ao mapeamento de receitas do paciente
+        prescriptions[_patient].push(newPrescription);
+        prescriptionIdArray.push(_expirationTime + prescriptionDate);
+        prescriptionId++;
 
-        // msg.value: built-in global variable that represents the amount of ether sent with the transaction
-        if (msg.value > 0) {
-            premium = true;
-        } else {
-            premium = false;
+        // Emite o evento de criação de receita
+        emit PrescriptionCreated(
+            msg.sender,
+            _patient,
+            _medication,
+            _quantity,
+            _expirationTime,
+            prescriptionId
+        );
+    }
+
+    function expirationTimeExecuter(
+        address _patient,
+        uint256 _prescriptionIndex
+    ) public {
+        Prescription storage prescription =
+            prescriptions[_patient][_prescriptionIndex];
+
+        if (prescription.isFilled) {
+            revert PrescriptionAlreadyFilled();
         }
 
-        // emit: keyword used to trigger an event
-        emit GreetingChange(msg.sender, _newGreeting, msg.value > 0, msg.value);
+        if (prescription.expirationTime < block.timestamp) {
+            prescription.isFilled = true;
+        } else {
+            revert expirationTimeNotPassedYet();
+        }
     }
 
-    /**
-     * Function that allows the owner to withdraw all the Ether in the contract
-     * The function can only be called by the owner of the contract as defined by the isOwner modifier
-     */
-    function withdraw() public isOwner {
-        (bool success,) = owner.call{value: address(this).balance}("");
-        require(success, "Failed to send Ether");
+    function expirationTimeRunner() public view {
+        for (uint256 i = 0; i < prescriptionIdArray.length; i++) {
+            if (prescriptionIdArray[i] < block.timestamp) {}
+        }
     }
+    // function getPatientAddress() public view returns(address){
+    //     for(uint256 i = 0; i < prescriptionIdArray.length; i ++){
+    //         _patientAddress = patientAdrress[i]
+    //     }
+    //     return _patientAddress;
+    // }
 
-    /**
-     * Function that allows the contract to receive ETH
-     */
-    receive() external payable {}
+    // TODO
+
+    // Função para marcar uma receita como preenchida pela farmácia
+    function fillPrescription(
+        address _patient,
+        uint256 _prescriptionIndex
+    ) public {
+        // Garante que apenas farmácias possam marcar receitas como preenchidas
+
+        // TODO Criar um modifier para OnlyPharmacy
+        // require(msg.sender == pharmacy, "Only pharmacies can fill prescriptions");
+
+        // Obtém a receita do paciente
+        Prescription storage prescription =
+            prescriptions[_patient][_prescriptionIndex];
+
+        // Garante que a receita ainda não foi preenchida
+        if (prescription.isFilled) {
+            revert PrescriptionAlreadyFilled();
+        }
+
+        // Marca a receita como preenchida
+        prescription.isFilled = true;
+    }
 }

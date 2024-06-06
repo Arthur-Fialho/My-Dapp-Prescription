@@ -4,6 +4,237 @@
  */
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
-const deployedContracts = {} as const;
+const deployedContracts = {
+  31337: {
+    YourContract: {
+      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [
+            {
+              name: "_owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "expirationTimeExecuter",
+          inputs: [
+            {
+              name: "_patient",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "_prescriptionIndex",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "expirationTimeRunner",
+          inputs: [],
+          outputs: [],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "fillPrescription",
+          inputs: [
+            {
+              name: "_patient",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "_prescriptionIndex",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "patientAdrress",
+          inputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "prescribeMedication",
+          inputs: [
+            {
+              name: "_patient",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "_medication",
+              type: "string[]",
+              internalType: "string[]",
+            },
+            {
+              name: "_quantity",
+              type: "uint256[]",
+              internalType: "uint256[]",
+            },
+            {
+              name: "_expirationTime",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "prescriptionIdArray",
+          inputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "prescriptions",
+          inputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "doctor",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "patient",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "isFilled",
+              type: "bool",
+              internalType: "bool",
+            },
+            {
+              name: "expirationTime",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "prescriptionId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "event",
+          name: "PrescriptionCreated",
+          inputs: [
+            {
+              name: "doctor",
+              type: "address",
+              indexed: false,
+              internalType: "address",
+            },
+            {
+              name: "patient",
+              type: "address",
+              indexed: false,
+              internalType: "address",
+            },
+            {
+              name: "medication",
+              type: "string[]",
+              indexed: false,
+              internalType: "string[]",
+            },
+            {
+              name: "quantity",
+              type: "uint256[]",
+              indexed: false,
+              internalType: "uint256[]",
+            },
+            {
+              name: "expirationTime",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "prescriptionId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "OnlyDoctorCanPrescribe",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "PrescriptionAlreadyFilled",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "expirationTimeNotPassedYet",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
+    },
+  },
+} as const;
 
 export default deployedContracts satisfies GenericContractsDeclaration;
